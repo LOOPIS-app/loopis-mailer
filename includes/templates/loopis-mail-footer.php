@@ -1,0 +1,53 @@
+<?php
+/**
+ * Standard LOOPIS mail footer
+ * 
+ * @return string HTML footer
+ */
+
+if (!defined('ABSPATH')) {
+    exit;
+}
+
+function loopis_mail_footer(string $text = ''): string {
+    if ($text === 'manager') {
+        $icon = LOOPIS_THEME_URI . '/assets/img/LOOPIS_icon_admin.png';
+        $text = 'Notifikation till admin på ' . get_bloginfo('name') . '.';
+    } elseif(!empty($text)){
+        $icon = LOOPIS_THEME_URI . '/assets/img/LOOPIS_icon.png';
+    } else {
+        $icon = LOOPIS_THEME_URI . '/assets/img/LOOPIS_icon.png';
+        $text = 'Ett mail från LOOPIS.app';
+    }
+
+    // $text='Information från <a href="/">LOOPIS.app</a> <br> angående ditt användarkonto.'
+
+    $html = '<table style="border-collapse: collapse;border-top: 1px solid">'
+        . '<tbody>'
+        . '<tr>'
+        . '<td style="padding: 5px 5px 0 0"><img style="height: 32px" src="' . esc_url($icon) . '" alt="LOOPIS_icon" /></td>'
+        . '<td style="padding: 5px 10px 0 0">'
+        . '<p style="font-size: 11px;font-style: italic;margin: 0;line-height: 1.2">' . $text . '</p>'
+        . '</td>'
+        . '</tr>'
+        . '</tbody>'
+        . '</table>';
+
+    return $html;
+}
+
+
+
+function loopis_weekly_mail_footer(): string {
+    $html =  '<div style="margin: 0 auto; padding: 0px; text-align: center; font-size: 16px;">
+
+        Se alla annonser → <a href="https://loopis.app">LOOPIS.app</a>
+
+        <hr style="border: none; border-top: 5px dotted; border-color: #eee;" />
+
+        <img src="'.LOOPIS_MAILER_URI.'/assets/img/LOOPIS_mail_footer.png" alt="" width="300" />
+
+        </div>';
+    return $html;
+}
+
