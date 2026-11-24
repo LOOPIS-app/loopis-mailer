@@ -38,7 +38,8 @@ function loopis_mail_footer(string $text = ''): string {
 
 
 
-function loopis_weekly_mail_footer(): string {
+function loopis_weekly_mail_footer(int $user_id): string {
+    $location = get_blog_details()->blogname ?? 'Sverige';
     $html =  '<div style="margin: 0 auto; padding: 0px; text-align: center; font-size: 16px;">
 
         Se alla annonser → <a href="https://loopis.app">LOOPIS.app</a>
@@ -47,7 +48,20 @@ function loopis_weekly_mail_footer(): string {
 
         <img src="'.LOOPIS_MAILER_URI.'/assets/img/LOOPIS_mail_footer.png" alt="" width="300" />
 
+        <p> 📍 Loopis i ' . $location . '</p>
+
+        Vill du inte ha tipsmail längre?<a href="'.unregister_url($user_id).'">Klicka här!</a>
         </div>';
     return $html;
 }
 
+function unregister_url(int $user_id){
+    $url = add_query_arg(
+        [
+            'uid'   => $user_id,
+            'token' => loopis_unsubscribe_token( $user_id ),
+        ],
+        home_url( '/unregister/' )
+    );
+    return $url;
+}

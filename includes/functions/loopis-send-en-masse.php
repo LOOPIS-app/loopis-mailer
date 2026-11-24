@@ -17,6 +17,7 @@ function loopis_send_en_masse(string $mail_content, string $mail_subject){
     do {
         $users = get_users([
             'number'     => $batch_size,
+            'blog_id' => get_current_blog_id(),
             'offset'     => $offset,
             'orderby'    => 'ID',
             'order'      => 'ASC',
@@ -46,7 +47,7 @@ function loopis_send_en_masse(string $mail_content, string $mail_subject){
 function loopis_send_en_masse_images_test(string $mail_content, string $mail_subject){
     $user = wp_get_current_user(); 
     $safe_mail_content = nl2br(esc_html($mail_content));
-    $limit = 5;
+    $limit = 15;
 
     $base_mail =  '<div style="max-width: 500px; margin: 0 auto; padding: 5px; text-align: center; font-size: 16px;">
         <div style="margin: 10px;"><img src="https://loopis.app/wp-content/themes/loopis-theme/assets/img/LOOPIS_mail_header.png" alt="LOOPIS logotyp" width="240" /></div>
@@ -64,13 +65,12 @@ function loopis_send_en_masse_images_test(string $mail_content, string $mail_sub
                 ]],
             ]);
     
-    shuffle($posts);
     $posts_slice =  array_slice(
         $posts,
         0,
         $limit);
 
-    $mail = $base_mail . loopis_mail_tip_images($posts_slice)  . loopis_weekly_mail_footer();
+    $mail = $base_mail . loopis_mail_tip_images($posts_slice)  . loopis_weekly_mail_footer($user->id);
 
     $sent = wp_mail(
         $user->user_email,
@@ -98,7 +98,7 @@ function loopis_send_en_masse_images(string $mail_content, string $mail_subject)
 
     $batch_size = 50;
     $offset = 0;
-    $limit = 5;
+    $limit = 15;
 
     $posts = get_posts([
                 'post_type'      => 'post',
@@ -117,17 +117,20 @@ function loopis_send_en_masse_images(string $mail_content, string $mail_subject)
         ? array_map('intval', $unsubscribed_ids)
         : [];
 
-    do {
-        shuffle($posts);
-        $posts_slice =  array_slice(
-            $posts,
-            0,
-            $limit);
 
-        $mail = $base_mail . loopis_mail_tip_images($posts_slice)  . loopis_weekly_mail_footer();
+    $posts_slice =  array_slice(
+        $posts,
+        0,
+        $limit);   
+        
+    $mail = $base_mail . loopis_mail_tip_images($posts_slice); 
+
+    do {
+        
 
         $users = get_users([
             'exclude'    => $unsubscribed_ids,
+            'blog_id' => get_current_blog_id(),
             'number'     => $batch_size,
             'offset'     => $offset,
             'orderby'    => 'ID',
@@ -136,9 +139,9 @@ function loopis_send_en_masse_images(string $mail_content, string $mail_subject)
 
         foreach ($users as $user) {
             $sent = wp_mail(
-                $user->email,
+                $user->user_email,
                 $mail_subject,
-                $mail,
+                $mail . loopis_weekly_mail_footer($user->id),
                 loopis_mail_headers()
             );
 

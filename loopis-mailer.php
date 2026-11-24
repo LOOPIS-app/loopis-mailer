@@ -3,7 +3,7 @@
 * Plugin Name:  LOOPIS Mailer
 * Plugin URI:   https://github.com/LOOPIS-app/loopis-mailer
 * Description:  Plugin for configuring mail and mail templates in LOOPIS.app
-* Version:      0.01
+* Version:      0.02
 * Author:       The Develoopers
 * Author URI:   https://loopis.org
 * License:      GPL-3.0-or-later
@@ -26,7 +26,7 @@ if (!defined('ABSPATH')) {
 }
 
 // Define plugin version
-define('LOOPIS_USERS_VERSION', '0.01');
+define('LOOPIS_MAILER_VERSION', '0.02');
 // Define paths
 define('LOOPIS_MAILER_DIR', plugin_dir_path(__FILE__));     // Server-side path to /wp-content/plugins/loopis-config/
 define('LOOPIS_MAILER_URI', plugin_dir_url(__FILE__));      // Client-side path to https://site.com/wp-content/plugins/loopis-config/
@@ -44,4 +44,46 @@ function loopis_get_mail(){
     include_once  LOOPIS_MAILER_DIR . '/includes/templates/loopis-mail-footer.php';
     include_once  LOOPIS_MAILER_DIR . '/includes/templates/loopis-mail-template.php';
     include_once  LOOPIS_MAILER_DIR . '/includes/templates/loopis-mail-headers.php';
+}
+
+function loopis_unsubscribe_token( int $user_id ): string {
+    return hash_hmac(
+        'sha256',
+        'unsubscribe:' . $user_id,
+        wp_salt( 'auth' )
+    );
+}
+
+function loopis_unsubscribe_user(int $user_id){
+    if ( ! get_userdata( $user_id ) ) {
+        return false;
+    }
+
+    $unsubscribed_ids = get_option( 'unsubscribed_mail_ids', [] );
+
+    if ( ! is_array( $unsubscribed_ids ) ) {
+        $unsubscribed_ids = [];
+    }
+
+    $unsubscribed_ids[] = $user_id;
+    $unsubscribed_ids = array_values( array_unique( array_map( 'absint', $unsubscribed_ids ) ) );
+
+    update_option( 'unsubscribed_mail_ids', $unsubscribed_ids, false );
+}
+
+function loopis_resubscribe_user( int $user_id ): void {
+    $unsubscribed_ids = get_option( 'unsubscribed_mail_ids', [] );
+
+    if ( ! is_array( $unsubscribed_ids ) ) {
+        return;
+    }
+
+    $unsubscribed_ids = array_values(
+        array_filter(
+            array_map( 'absint', $unsubscribed_ids ),
+            static fn( $id ) => $id !== $user_id
+        )
+    );
+
+    update_option( 'unsubscribed_mail_ids', $unsubscribed_ids, false );
 }
